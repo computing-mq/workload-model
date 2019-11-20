@@ -1,37 +1,33 @@
 """
  Implement the 2020 FSE Workload Model for Computing
 """
-import xlrd
 import tablib
 from typing import List, Dict, Tuple
 
 from model import compute_load
 
-# TODO: Read list of units with enrollment (and other metadata) and calculate required workload
 # TODO: Read list of staff allocations and calculate assigned workload
 
 def read_unit_info(excelfile: str) -> Dict:
 
-    workbook: xlrd.book = xlrd.open_workbook(excelfile)
-    sheet: xlrd.sheet = workbook.sheet_by_index(0)
-    units: Dict = {}
+    with open(excelfile, 'rb') as fd:
+        data = tablib.Dataset().load(fd.read(), format="xlsx")
+        
+    assert(data.headers == ['Unit Code', 'Title', 'Session', 'Enrollment', 'New Unit', 'Co Taught', 'Lecture Type'])
 
-    # validate column headings
-    headings: List = [cell.value for cell in sheet.row(0)]
-    assert(headings == ['Unit Code', 'Title', 'Session', 'Enrollment', 'New Unit', 'Co Taught', 'Lecture Type'])
-
-    for i in range(1, sheet.nrows):
-        code, title, session, enrol, new_unit, cotaught, ltype= [c.value for c in sheet.row(i)]
-        key = "{}-{}".format(code, session)
-        units[key] = {
-            'code': code,
-            'session': session,
-            'title': title,
-            'enrollment': enrol,
-            'co-taught': cotaught,
-            'new-unit': new_unit,
-            'lecture-type': ltype
-        }
+    units = {}
+    for row in data.dict:
+        if row['Unit Code'] is not None:
+            key = "{}-{}".format(row['Unit Code'], row['Session'])
+            units[key] = {
+                'code': row['Unit Code'],
+                'session': row['Session'],
+                'title': row['Title'],
+                'enrollment': row['Enrollment'],
+                'co-taught': row['Co Taught'],
+                'new-unit': row['New Unit'],
+                'lecture-type': row['Lecture Type']
+            }
     
     return units
 
@@ -42,7 +38,7 @@ def consolidate_units(units: Dict) -> Dict:
     result = units.copy()
     for code in units:
         ct = units[code]['co-taught']
-        if ct != '':
+        if ct is not None:
             key = "{}-{}".format(ct, units[code]['session'])
             # add enrollment to main unit
             result[key]['enrollment'] = units[key]['enrollment'] + units[code]['enrollment']
@@ -51,7 +47,6 @@ def consolidate_units(units: Dict) -> Dict:
             # remove from result
             del result[code]
     return result
-
 
 def overall_load(units: Dict) -> List[Dict]:
     """Compute overall load for a list of units
@@ -91,34 +86,37 @@ def write_overall(overall: Dict, filename: str) -> None:
 
     with open(filename, 'wb') as out:
         out.write(dataset.export('xlsx'))
+
+def read_allocation_workbook(excelfile: str) -> Tuple:
+    """Read an allocation excel file with multiple sheets.
+       Return a tuple of (staff, activities) where
+        staff is a list of dictionaries one per staff member and
+        activities is a list of dictionaries one per staff activity
+    """
+
+    with open(excelfile, 'rb') as fd:
+        workbook = tablib.Databook().load(fd.read(), 'xlsx')
+
+    activities = []
+    staff = []
+    for sheet in workbook.sheets():
+        print(sheet.title)
+        print(sheet.headers)
+        if sheet.title == 'Activities': 
+            activities = sheet.dict 
+        if sheet.title == 'Staff':
+            staff = sheet.dict  
     
+    return staff, activities
 
 if __name__=='__main__':
 
-    units: Dict = read_unit_info('data/unit-enrollments.xlsx')
+    #units: Dict = read_unit_info('data/unit-enrollments.xlsx')
 
-    load = overall_load(units)
-    write_overall(load, 'overall-load.xlsx')
+    #load = overall_load(units)
+    #write_overall(load, 'overall-load.xlsx')
 
-    exit()
+    staff, allocation = read_allocation_workbook("data/allocation-2020.xlsx")
 
-
-    units = consolidate_units(units)
-
-    total = 0
-    tutorials = 0
-    marking = 0
-    for code in units:
-        unit = units[code]
-
-        load = compute_load(unit['enrollment'], unit['new-unit'], unit['lecture-type'])
-
-        total += load['convening'] + load['lecturing'] + load['loading']
-        tutorials += load['tutorial']
-        marking += load['marking']
-        print(code, unit['title'], "{convening:.2f}, {lecturing:.2f}, {loading:.2f}".format_map(load))
-
-    fte = total / 40
-    print("Convening + Lecturing {:.2f} points. FTE staff @ 40% {:.2f}".format(total, fte))
-    print("Marking {:.2f} points. FTE staff @ 40% {:.2f}".format(marking, marking/40))
-    print("Tutorials  {:.2f} points. FTE staff  @ 40% {:.2f}".format(tutorials, tutorials/40))
+    for a in allocation:
+        print(a)
