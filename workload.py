@@ -1,24 +1,28 @@
 """
  Implement the 2020 FSE Workload Model for Computing
 """
+from typing import Callable, Dict, List, Tuple
+
 import tablib
-from typing import List, Dict, Tuple
 
-from model import compute_load
+import model
 
-# TODO: Read list of staff allocations and calculate assigned workload
+# TODO: Add columns to unit-enrollments for: lecture hours/wk, tutorial hours/wk
+# TODO: Add columns to activities for: marking load (points), tutorials (number)
 
 def read_unit_info(excelfile: str) -> Dict:
 
     with open(excelfile, 'rb') as fd:
         data = tablib.Dataset().load(fd.read(), format="xlsx")
         
-    assert(data.headers == ['Unit Code', 'Title', 'Session', 'Enrollment', 'New Unit', 'Co Taught', 'Lecture Type'])
+    assert(data.headers == ['Unit Code', 'Title', 'Session', 'Enrollment', 
+            'New Unit', 'Co Taught', 'Lecture Type',
+            'Lecture Hours', 'SGTA Hours'])
 
     units = {}
     for row in data.dict:
         if row['Unit Code'] is not None:
-            key = "{}-{}".format(row['Unit Code'], row['Session'])
+            key = offering_key(row['Unit Code'], row['Session'])
             units[key] = {
                 'code': row['Unit Code'],
                 'session': row['Session'],
@@ -26,10 +30,17 @@ def read_unit_info(excelfile: str) -> Dict:
                 'enrollment': row['Enrollment'],
                 'co-taught': row['Co Taught'],
                 'new-unit': row['New Unit'],
-                'lecture-type': row['Lecture Type']
+                'lecture-type': row['Lecture Type'],
+                'lecture-hours': row['Lecture Hours'],
+                'sgta-hours': row['SGTA Hours'],
             }
     
     return units
+
+def offering_key(code: str, session: str) -> str:
+    """Generate a key for this offering"""
+
+    return "{}-{}".format(code, session)
 
 def consolidate_units(units: Dict) -> Dict: 
     """Given a set of units, combine the enrollments of co-taught 
@@ -39,7 +50,7 @@ def consolidate_units(units: Dict) -> Dict:
     for code in units:
         ct = units[code]['co-taught']
         if ct is not None:
-            key = "{}-{}".format(ct, units[code]['session'])
+            key = offering_key(ct, units[code]['session'])
             # add enrollment to main unit
             result[key]['enrollment'] = units[key]['enrollment'] + units[code]['enrollment']
             result[key]['co-taught-with'] = units[code]['code']
@@ -48,21 +59,22 @@ def consolidate_units(units: Dict) -> Dict:
             del result[code]
     return result
 
-def overall_load(units: Dict) -> List[Dict]:
+def overall_load(units: Dict) -> Dict[str, Dict]:
     """Compute overall load for a list of units
-    return a list of dictionaries"""
+    return a dictionary with offerings as keys
+    and values being a dictionary which is the result of compute_load"""
 
     units = consolidate_units(units)
 
-    result = []
+    result = {}
     total = 0
     tutorials = 0
     marking = 0
     for code in units:
         unit = units[code].copy()
-        load = compute_load(unit['enrollment'], unit['new-unit'], unit['lecture-type'])
+        load = model.compute_load(unit)
         unit.update(load)
-        result.append(unit)
+        result[code] = unit
 
     return result
 
@@ -75,23 +87,23 @@ def write_overall(overall: Dict, filename: str) -> None:
         'Lecture Type', 'New Unit', 'Tutorial Classes',
         'Convening', 'Lecturing', 'Tutorial', 'Loading', 'Marking',
     ]
-    for unit in overall:
+    for unit in overall.values():
         row = [
             unit['code'], unit['title'], unit['session'], unit['enrollment'], unit.get('co-taught-with', ''),
             unit.get('co-taught-enrolled', ''), 
             unit['lecture-type'], unit['new-unit'], unit['tutorial-classes'],
-            unit['convening'], unit['lecturing'], unit['tutorial'], unit['loading'], unit['marking']
+            unit['convener'], unit['lecturer'], unit['tutorial'], unit['loading'], unit['marking']
         ]
         dataset.append(row)
 
     with open(filename, 'wb') as out:
         out.write(dataset.export('xlsx'))
 
-def read_allocation_workbook(excelfile: str) -> Tuple:
+def read_allocation_workbook(excelfile: str) -> Tuple[tablib.Dataset, tablib.Dataset]:
     """Read an allocation excel file with multiple sheets.
        Return a tuple of (staff, activities) where
-        staff is a list of dictionaries one per staff member and
-        activities is a list of dictionaries one per staff activity
+        staff is the staff sheet, one row per staff member
+        activities is the activities sheet, one row per allocated activity
     """
 
     with open(excelfile, 'rb') as fd:
@@ -100,23 +112,116 @@ def read_allocation_workbook(excelfile: str) -> Tuple:
     activities = []
     staff = []
     for sheet in workbook.sheets():
-        print(sheet.title)
-        print(sheet.headers)
         if sheet.title == 'Activities': 
-            activities = sheet.dict 
+            activities = sheet 
         if sheet.title == 'Staff':
-            staff = sheet.dict  
+            staff = sheet  
     
     return staff, activities
 
+def calculate_activity_load(units: Dict, overall_load: Dict) -> Callable:
+    """Generate a load calculation function to add a column to
+    a dataset
+    """
+
+    def row_function(row: Tuple) -> float:
+
+        #print(len(row), row)
+        code, title, session, activity, quantity, staff, notes = row
+
+        key = offering_key(code, session)
+
+        activity = activity.lower()
+        assert(activity in ['lecturer', 'convener', 'marking', 'tutorial', 'bonus'])
+
+        if key not in overall_load:
+            print("Load for offering", key, "not found")
+            return 0.0
+
+        if activity in ['convener', 'lecturer']:
+            load = overall_load[key][activity] * quantity 
+
+        elif activity == 'tutorial':
+            sgta_per_week = units[key]['sgta-hours']
+            load = model.tutorial(quantity * sgta_per_week)
+        else:
+            load = quantity
+
+        return load
+
+    return row_function
+
+def add_unit_activities(activities: tablib.Dataset, overall_load: Dict) -> tablib.Dataset:
+    """For each allocated lecturing activity allocate 
+    marking and tutoral activities 
+    """
+    result = []
+    for row in activities.dict:
+        key = offering_key(row['Unit Code'], row['Session'])
+        # check that we have a load for this unit, if not, it isn't running (eg. co-taught)
+        if key in overall_load:
+            load = overall_load[key]
+            newrow = row.copy()
+            del newrow['Marking']
+            del newrow['SGTA']
+            del newrow['New']
+
+            result.append(newrow)  # copy over
+
+            if row['Marking'] is not None:
+                # assign some marking to each lecturer
+                newrow = {
+                    'Unit Code': row['Unit Code'],
+                    'Title' : row['Title'],
+                    'Session': row['Session'],
+                    'Activity': 'Marking',
+                    'Quantity': min(row['Marking'], load['marking']*row['Quantity']),
+                    'Staff': row['Staff'],
+                    'Notes': 'Added Marking allocation'
+                }
+                result.append(newrow)
+
+            if row['SGTA'] is not None:
+                newrow = {
+                    'Unit Code': row['Unit Code'],
+                    'Title' : row['Title'],
+                    'Session': row['Session'],
+                    'Activity': 'Tutorial',
+                    'Quantity': row['SGTA'],
+                    'Staff': row['Staff'],
+                    'Notes': 'Added Tutorial allocation'
+                }
+                result.append(newrow)
+
+            # add bonus points as an explicit row
+            if row['Activity'] == 'Lecturer' and (load['new-unit'] or row['New'] is not None):
+                newrow = {
+                    'Unit Code': row['Unit Code'],
+                    'Title' : row['Title'],
+                    'Session': row['Session'],
+                    'Activity': 'Bonus',
+                    'Quantity': (row['New'] or 0.0) + model.unit_loading(load['new-unit']) * row['Quantity'],
+                    'Staff': row['Staff'],
+                    'Notes': 'Bonus Points'
+                }
+                result.append(newrow)
+
+    newdataset = tablib.Dataset()
+    newdataset.dict = result
+    return newdataset
+
 if __name__=='__main__':
 
-    #units: Dict = read_unit_info('data/unit-enrollments.xlsx')
+    units: Dict = read_unit_info('data/unit-enrollments.xlsx')
 
-    #load = overall_load(units)
-    #write_overall(load, 'overall-load.xlsx')
+    overall = overall_load(units)
+    write_overall(overall, 'overall-load.xlsx')
 
     staff, allocation = read_allocation_workbook("data/allocation-2020.xlsx")
 
-    for a in allocation:
-        print(a)
+    allocation = add_unit_activities(allocation, overall)
+
+    allocation.insert_col(-1, calculate_activity_load(units, overall), header='Load')
+
+    with open("allocation-load.xlsx", 'wb') as out:
+        out.write(allocation.xlsx)
