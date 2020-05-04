@@ -132,7 +132,7 @@ def calculate_activity_load(units: Dict, overall_load: Dict) -> Callable:
         key = offering_key(code, session)
 
         activity = activity.lower()
-        assert(activity in ['lecturer', 'convener', 'marking', 'tutorial', 'bonus'])
+        assert(activity in ['lecturer', 'convener', 'marking', 'tutorial', 'bonus', 'project'])
 
         if key not in overall_load:
             print("Load for offering", key, "not found")
@@ -144,6 +144,8 @@ def calculate_activity_load(units: Dict, overall_load: Dict) -> Callable:
         elif activity == 'tutorial':
             sgta_per_week = units[key]['sgta-hours']
             load = model.tutorial(quantity * sgta_per_week)
+        elif activity == 'project':
+            load = model.project_supervision(quantity)
         else:
             load = quantity
 
