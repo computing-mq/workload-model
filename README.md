@@ -15,8 +15,6 @@ New Unit - 1 if this is a new unit, blank otherwise, unit will attract a loading
 Co Taught - unit code of any co-taught unit (eg. COMP6100)
 Lecture Type - 'Mature', 'Refreshed', as per the workload model, or 'PACE' for PACE units
 
-
-
 allocation.xlsx - spreadsheet with at least two sheets named 'Activities' and 'Staff'
 
 Activities sheet
@@ -44,5 +42,28 @@ Workload Computation
 ---
 
 The [workload.py](workload.py) script reads the source spreadsheets and computes
-the workload for each activity in the allocation.  
+the workload for each activity in the allocation.  The script monitors the `data`
+directory for changes and re-builds the output data in JSON if the spreadsheet
+changes.  
+
+Front-end Visualisation
+---
+
+The front end HTML visualisation is implemented in the `src` directory in HTML + JS.
+It can be compiled into a single stand-alone HTML file using the parcel bundler. 
+To monitor for changes in the allocation JSON data run:
+
+```
+parcel serve src/index.html
+```
+
+To build the standalone HTML file run:
+
+```
+parcel build src/index.html
+```
+
+The output is written to `dist/index.html`.
+
+
 
