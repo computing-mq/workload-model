@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Computing Teaching Allocation</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+  <link rel="stylesheet" href="css/custom.css">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+ 
+  <script src="js/userlist.js" type=module defer></script>
+  <script src="js/offeringlist.js" type=module defer></script>
+  <script src="js/table.js" type=module defer></script>
+  <script src="js/main.js" type=module defer></script>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Computing Teaching Allocation</h1>
+
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#!/staff">Staff Summary</a></li>
+        <li><a href="#!/offerings">Unit Offering Summary</a></li>
+      </ul>
+    </nav>
+
+
+    <div id=homepage>
+      <h2>About the Model</h2>
+
+      <p>The data presented here comes from the application of the Faculty Workload Model 
+        to the Teaching activities of Computing staff.  All loadings come from the model but 
+        there are a few assumptions made.
+      </p>
+
+      <h4>Convening</h4>
+
+      <p>The Faculty model for convening covers activities that are shared by co-lecturers 
+        in our units. Hence part of the convening load is shared between lecturing staff. 
+        First the convening load for a unit is calculated, including load for consultation
+        time and assessment development.  Of this 0.5 is given to the convener, with the
+        remaining 0.5 shared between co-lecturers. So a convener who is also a lecturer on 
+        the unit would normally get 0.75 of the convening/consultation/assessment prep load.
+      </p>
+
+      <p>Convening loads are based on estimated or actual enrollments in the unit.</p>
+
+
+      <h4>Lecturing and Marking</h4>
+
+      <p>Lecturing load is calculated based on 13 weeks of lectures with the number of hours 
+        per week varying for each unit (normally 3).
+      </p>
+
+      <p>Marking load is assigned seperately. A cap on marking load per unit is calculated based on
+        1 hr per student enrolment to cover exam and assignment marking.
+      </p>
+
+      <h4>Administrative Roles</h4>
+
+      <p>While this is mainly a teaching model we do include some admin roles where they affect
+        the target teaching load. For example, Director of Teaching is modelled at 7.5 points/semester 
+        under the `unit' ADMIN001.
+      </p>
+
+      <h4>Bonus Points</h4>
+
+      <p>Bonus points are added for various reasons including being new to a unit, developing
+        a new unit or for new appointees in their first year.  
+      </p>
+
+
+    </div>
+
+    <div id=tables class="row">
+      <div class="six columns">
+          <div id="mainlist"></div>
+      </div>
+      <div class="six columns">
+          <div id="detail"></div>
+      </div>
+    </div>
+
+
+
+  </div>
+
+</body>
+</html>

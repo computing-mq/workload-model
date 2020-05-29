@@ -48,6 +48,12 @@ def marking(enrollment: int, per_student: float) -> float:
     """
     return 0.063 * per_student * enrollment
 
+def project_supervision(n: int) -> float:
+    """Compute the load for supervising this many 
+    coursework project students"""
+
+    return 1.0 * n # Up to 1 point per student with HoD agreed allocation at unit level.
+
 def unit_loading(new_unit: bool) -> float:
     """Compute unit loadings for new unit development"""
 

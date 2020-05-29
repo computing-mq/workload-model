@@ -1,7 +1,11 @@
 """
  Implement the 2020 FSE Workload Model for Computing
 """
+from http.server import BaseHTTPRequestHandler
 from typing import Callable, Dict, List, Tuple
+
+from watchdog.observers import Observer
+from watchdog.events import LoggingEventHandler, DirModifiedEvent
 
 import tablib
 
@@ -78,7 +82,7 @@ def overall_load(units: Dict) -> Dict[str, Dict]:
 
     return result
 
-def write_overall(overall: Dict, filename: str) -> None:
+def write_overall(overall: Dict, filename: str, format: str='xlsx') -> None:
     """Write out the overall load as an Excel file"""
 
     dataset: tablib.Dataset = tablib.Dataset()
@@ -97,7 +101,8 @@ def write_overall(overall: Dict, filename: str) -> None:
         dataset.append(row)
 
     with open(filename, 'wb') as out:
-        out.write(dataset.export('xlsx'))
+        out.write(dataset.export(format))
+
 
 def read_allocation_workbook(excelfile: str) -> Tuple[tablib.Dataset, tablib.Dataset]:
     """Read an allocation excel file with multiple sheets.
@@ -212,18 +217,50 @@ def add_unit_activities(activities: tablib.Dataset, overall_load: Dict) -> tabli
     newdataset.dict = result
     return newdataset
 
+class MyHandler():
+
+    def dispatch(self, event):
+
+        if type(event) == DirModifiedEvent:
+            units: Dict = read_unit_info('data/unit-enrollments.xlsx')
+
+            overall = overall_load(units)
+            write_overall(overall, 'src/overall-load.xlsx')
+
+            staff, allocation = read_allocation_workbook("data/allocation-2020.xlsx")
+
+            allocation = add_unit_activities(allocation, overall)
+
+            allocation.insert_col(-1, calculate_activity_load(units, overall), header='Load')
+
+            with open("src/allocation-load.xlsx", 'wb') as out:
+                out.write(allocation.xlsx)
+
+            with open("src/allocation-load.json", "w") as out:
+                allocation.headers = [x.replace(' ', '_') for x in allocation.headers]
+                allocation.headers = [x.lower() for x in allocation.headers]
+                print(allocation.headers)
+                out.write(allocation.export('json'))
+
+            logging.info("Wrote allocation-load.json")
+
 if __name__=='__main__':
+    import logging
 
-    units: Dict = read_unit_info('data/unit-enrollments.xlsx')
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
 
-    overall = overall_load(units)
-    write_overall(overall, 'overall-load.xlsx')
-
-    staff, allocation = read_allocation_workbook("data/allocation-2020.xlsx")
-
-    allocation = add_unit_activities(allocation, overall)
-
-    allocation.insert_col(-1, calculate_activity_load(units, overall), header='Load')
-
-    with open("allocation-load.xlsx", 'wb') as out:
-        out.write(allocation.xlsx)
+    event_handler = MyHandler()
+    log_handler = LoggingEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, 'data', recursive=True)
+    observer.schedule(log_handler, 'data', recursive=True)
+    observer.start()
+    try:
+        while observer.isAlive():
+            observer.join(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+ 
