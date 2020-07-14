@@ -76,7 +76,7 @@ export class OfferingTable extends HTMLElement {
 
             this._displayedOfferings.forEach(e=>{
                 html = html + `<tr>
-                <td><a href="/#!/offerings/${e.id}">${e.id}</a></td>
+                <td><a href="#!/offerings/${e.id}">${e.id}</a></td>
                 <td>${e.title}</td>
                 </tr>`
             });

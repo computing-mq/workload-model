@@ -16,6 +16,11 @@ export function listPersonRecordsView(targetid, person, grouped) {
     heading.innerHTML = `${person.first_name} ${person.last_name}`;
     target.appendChild(heading);
 
+    const loaddiv = document.createElement("div")
+    loaddiv.innerHTML = `<h5>Allocated Load: ${person.load.toFixed(1)}</h5>`;
+    target.appendChild(loaddiv);
+
+
     for(const key in grouped) {
         const table = document.createElement('data-table');
         table.title = key;

@@ -173,16 +173,23 @@ def add_unit_activities(activities: tablib.Dataset, overall_load: Dict) -> tabli
             del newrow['SGTA']
             del newrow['New']
 
+
             result.append(newrow)  # copy over
 
             if row['Marking'] is not None:
                 # assign some marking to each lecturer
+                try:
+                    # marking or quantity might be a string
+                    quantity = min(row['Marking'], load['marking']*row['Quantity'])
+                except:
+                    quantity = 0
+
                 newrow = {
                     'Unit Code': row['Unit Code'],
                     'Title' : row['Title'],
                     'Session': row['Session'],
                     'Activity': 'Marking',
-                    'Quantity': min(row['Marking'], load['marking']*row['Quantity']),
+                    'Quantity': quantity,
                     'Staff': row['Staff'],
                     'Notes': 'Added Marking allocation'
                 }

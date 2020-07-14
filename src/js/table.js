@@ -2,7 +2,7 @@
 const tableTemplate = document.createElement('template');
 tableTemplate.innerHTML = `<style></style>
 
-<h4></h4>
+<h5></h5>
 <table class=u-full-width>
   <thead></thead>
   <tbody></tbody>
@@ -27,9 +27,7 @@ export class DataTable extends HTMLElement {
         this._root.appendChild(tableTemplate.content.cloneNode(true));
         this.$thead = this._root.querySelector("thead");
         this.$tbody = this._root.querySelector("tbody");
-        this.$h = this._root.querySelector('h4');
-
-        console.log(this);
+        this.$h = this._root.querySelector('h5');
 
         this._render();
     }
