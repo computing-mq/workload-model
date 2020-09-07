@@ -17,20 +17,21 @@ export function listPersonRecordsView(targetid, person, grouped) {
     target.appendChild(heading);
 
     const loaddiv = document.createElement("div")
-    loaddiv.innerHTML = `<h5>Allocated Load: ${person.load.toFixed(1)}</h5>`;
+    loaddiv.innerHTML = `<h5>Allocated Load: ${person.load.total.toFixed(1)}</h5>`;
     target.appendChild(loaddiv);
 
 
     for(const key in grouped) {
         const table = document.createElement('data-table');
-        table.title = key;
+        table.title = key + " (" + person.load[key].toFixed(1) + ")";
         table.headings = {
-            unit_code: {title: 'Unit', format: v => `<a href=#!/offerings/${v.id}>${v.unit_code}</a>`}, 
+            unit_code: {title: 'Unit', format: v => `<a href=#!/offerings/${v.offeringId}>${v.unit_code}</a>`}, 
             
             activity: {title: 'Activity'},
             quantity: {title: 'Quantity', format: v => v.quantity.toFixed(1)},
             load: {title: 'Load', format: v => v.load.toFixed(2)}
         }
+        console.log(grouped[key])
         table.data = grouped[key];
 
         target.appendChild(table);

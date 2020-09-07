@@ -28,6 +28,7 @@ function redraw() {
             let offerings = Model.get_offerings();
             views.listOfferingsView("mainlist", offerings);
             if (hash.id) {
+                console.log(hash.id)
                 let offering = Model.get_offering(hash.id);
                 let records = Model.filter_records(Model.get_records(), "unit_code", offering.unit_code);
                 records = Model.filter_records(records, "session", offering.session);

@@ -157,12 +157,18 @@ const Model = {
 
     get_person_load: function(name) {
 
-        let records = this.get_person_records(name);
-        let overall_load = 0.0;
-        for(let i=0; i<records.length; i++) {
-            overall_load += records[i].load;
+        const records = this.get_person_records(name);
+        const load = {
+            'Session 1': 0,
+            'Session 2': 0,
+            'Session 3': 0,
+            total: 0
         }
-        return overall_load;
+        for(let i=0; i<records.length; i++) {
+            load[records[i].session] += records[i].load
+            load.total += records[i].load;
+        }
+        return load;
     }
 };
 
