@@ -103,7 +103,6 @@ def write_overall(overall: Dict, filename: str, format: str='xlsx') -> None:
     with open(filename, 'wb') as out:
         out.write(dataset.export(format))
 
-
 def read_allocation_workbook(excelfile: str) -> Tuple[tablib.Dataset, tablib.Dataset]:
     """Read an allocation excel file with multiple sheets.
        Return a tuple of (staff, activities) where
@@ -119,6 +118,7 @@ def read_allocation_workbook(excelfile: str) -> Tuple[tablib.Dataset, tablib.Dat
     for sheet in workbook.sheets():
         if sheet.title == 'Activities': 
             activities = sheet 
+            print(activities.headers)
         if sheet.title == 'Staff':
             staff = sheet  
     
@@ -173,7 +173,6 @@ def add_unit_activities(activities: tablib.Dataset, overall_load: Dict) -> tabli
             del newrow['SGTA']
             del newrow['New']
 
-
             result.append(newrow)  # copy over
 
             if row['Marking'] is not None:
@@ -222,34 +221,51 @@ def add_unit_activities(activities: tablib.Dataset, overall_load: Dict) -> tabli
 
     newdataset = tablib.Dataset()
     newdataset.dict = result
+    print(newdataset.headers)
     return newdataset
 
+
+
+def do_process_files(enrollments_file: str, allocation_file: str):
+
+    units: Dict = read_unit_info(enrollments_file)
+
+    overall = overall_load(units)
+    write_overall(overall, 'src/overall-load.xlsx')
+
+    staff, allocation = read_allocation_workbook(allocation_file)
+
+    allocation = add_unit_activities(allocation, overall)
+    print(allocation.headers)
+
+    allocation.insert_col(-1, calculate_activity_load(units, overall), header='Load')
+
+    with open("src/allocation-load.xlsx", 'wb') as out:
+        out.write(allocation.xlsx)
+
+    with open("src/allocation-load.json", "w") as out:
+        allocation.headers = [x.replace(' ', '_') for x in allocation.headers]
+        allocation.headers = [x.lower() for x in allocation.headers]
+        print(allocation.headers)
+        out.write(allocation.export('json'))
+
+    logging.info("Wrote allocation-load.json")
+
+
 class MyHandler():
+
+    def __init__(self, enrollments_file, allocation_file):
+
+        self.enrollments_file = enrollments_file
+        self.allocation_file = allocation_file
 
     def dispatch(self, event):
 
         if type(event) == DirModifiedEvent:
-            units: Dict = read_unit_info('data/unit-enrollments.xlsx')
 
-            overall = overall_load(units)
-            write_overall(overall, 'src/overall-load.xlsx')
+            do_process_files(self.enrollments_file, self.allocation_file)
 
-            staff, allocation = read_allocation_workbook("data/allocation-2020.xlsx")
 
-            allocation = add_unit_activities(allocation, overall)
-
-            allocation.insert_col(-1, calculate_activity_load(units, overall), header='Load')
-
-            with open("src/allocation-load.xlsx", 'wb') as out:
-                out.write(allocation.xlsx)
-
-            with open("src/allocation-load.json", "w") as out:
-                allocation.headers = [x.replace(' ', '_') for x in allocation.headers]
-                allocation.headers = [x.lower() for x in allocation.headers]
-                print(allocation.headers)
-                out.write(allocation.export('json'))
-
-            logging.info("Wrote allocation-load.json")
 
 if __name__=='__main__':
     import logging
@@ -257,8 +273,14 @@ if __name__=='__main__':
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
+    config = {
+        'enrollments': 'data/unit-enrollments-2020.xlsx', 
+        'allocation': "data/allocation-2020.xlsx" 
+    }
+    
+    do_process_files(config['enrollments'], config['allocation'])
 
-    event_handler = MyHandler()
+    event_handler = MyHandler(config['enrollments'], config['allocation'])
     log_handler = LoggingEventHandler()
     observer = Observer()
     observer.schedule(event_handler, 'data', recursive=True)
