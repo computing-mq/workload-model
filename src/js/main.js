@@ -15,9 +15,9 @@ function redraw() {
             views.listPeopleView("mainlist", people);
             if (hash.id) {
                 let person = Model.get_person(hash.id);
-                let records = Model.filter_records(Model.get_records(), "staff", person.name);
-                let grouped = Model.group_records(records, "session");
-                views.listPersonRecordsView("detail", person, grouped);
+                let activities = Model.filter_activities(Model.get_activities(), "staff", person.name);
+                let grouped = Model.group_activities(activities, "session");
+                views.listPersonactivitiesView("detail", person, grouped);
             } else {
                 views.blankView("detail");
             }
@@ -28,11 +28,10 @@ function redraw() {
             let offerings = Model.get_offerings();
             views.listOfferingsView("mainlist", offerings);
             if (hash.id) {
-                console.log(hash.id)
                 let offering = Model.get_offering(hash.id);
-                let records = Model.filter_records(Model.get_records(), "unit_code", offering.unit_code);
-                records = Model.filter_records(records, "session", offering.session);
-                views.listOfferingRecordsView("detail", offering, records);
+                let activities = Model.filter_activities(Model.get_activities(), "code", offering.code);
+                activities = Model.filter_activities(activities, "session", offering.session);
+                views.listOfferingactivitiesView("detail", offering, activities);
             } else {
                 views.blankView("detail");
             }

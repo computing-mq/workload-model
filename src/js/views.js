@@ -5,9 +5,9 @@ export function blankView(targetid) {
     target.innerHTML = "";
 }
 
-// listRecordsView - generate a view of a list of records
+// listactivitiesView - generate a view of a list of activities
 //   and insert it at `targetid` in the document
-export function listPersonRecordsView(targetid, person, grouped) {
+export function listPersonactivitiesView(targetid, person, grouped) {
 
     const target = document.getElementById(targetid);
     target.innerHTML = "";  // wipe children
@@ -25,7 +25,7 @@ export function listPersonRecordsView(targetid, person, grouped) {
         const table = document.createElement('data-table');
         table.title = key + " (" + person.load[key].toFixed(1) + ")";
         table.headings = {
-            unit_code: {title: 'Unit', format: v => `<a href=#!/offerings/${v.offeringId}>${v.unit_code}</a>`}, 
+            unit_code: {title: 'Unit', format: v => `<a href=#!/offerings/${v.offeringId}>${v.code}</a>`}, 
             
             activity: {title: 'Activity'},
             quantity: {title: 'Quantity', format: v => v.quantity.toFixed(1)},
@@ -68,9 +68,9 @@ export function listOfferingsView(targetid, offerings) {
     target.appendChild(ol);
 }
 
-// listOfferingRecordsView - generate a view of a list of records for an offering
+// listOfferingactivitiesView - generate a view of a list of activities for an offering
 //   and insert it at `targetid` in the document
-export function listOfferingRecordsView(targetid, offering, records) {
+export function listOfferingactivitiesView(targetid, offering, activities) {
     const target = document.getElementById(targetid);
 
     const table = document.createElement('data-table');
@@ -81,7 +81,7 @@ export function listOfferingRecordsView(targetid, offering, records) {
         quantity: {title: 'Quantity', format: v => v.quantity.toFixed(1)},
         load: {title: 'Load', format: v => v.load.toFixed(2)}
     }
-    table.data = records;
+    table.data = activities;
     target.innerHTML = "";  // wipe children
  
     target.appendChild(table);

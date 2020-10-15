@@ -1,80 +1,186 @@
 /* Read and write files 
 */
-
-const fs = require('fs')
-const XLSX = require('xlsx')
-
-
+import fs from 'fs'
+import XLSX from 'xlsx'
+import workload from './workload.js'
 
 const readAllocationWorkbook = (fileName) => {  
 
     const workbook = XLSX.readFile(fileName)
 
     const aconfig = {
-        header: ['code','title', 'session', 'activity', 'quantity', 'marking', 'SGTA', 'new', 'staff', 'notes'],
+        header: ['code','title', 'session', 'activity', 'quantity', 'marking', 'SGTA', 'bonus', 'staff', 'notes'],
         blankrows: false,
         range: 1 // ignore first row
     }
 
     const activities = XLSX.utils.sheet_to_json(workbook.Sheets['Activities'], aconfig)
     const pconfig = {
-        header: ['name', 'role', 'points'],
+        header: ['name', 'adjunct', 's1target', 's2target'],
         blankrows: false,
         range: 1 // ignore first row
     }
     const people = XLSX.utils.sheet_to_json(workbook.Sheets['Staff'], pconfig)
 
-    return {people, activities}
+    const uconfig = {
+        header: ['code', 'title', 'session', 'enrollment',
+                 'newUnit', 'cotaught', 'lectureType', 'lectureHours', 'SGTAHours'],
+        blankrows: false,
+        range: 1 // ignore first row
+    }
+    const offerings = XLSX.utils.sheet_to_json(workbook.Sheets['Units'], uconfig)
+
+    return {activities, people, offerings}
+}
+
+const personName = (name) => {
+    if (!name) {
+        return null
+    }
+    const parts = name.split(',');
+    if (parts.length > 1) {
+        return {
+            id: parts[1].trim() + parts[0].trim(),
+            first_name: parts[1].trim(),
+            last_name: parts[0].trim()
+        }
+    } else {
+        return null
+    }
 }
 
 
 const expandPeople = (people) => {
 
-    return people.map((p, index) => {
-        const parts = p.name.split(',');
-        if (parts.length > 1) {
+    const peopleObj = {}
+    people.forEach((p) => {
+        const name = personName(p.name)
+        if (p) {
             const person = {
-                ...p,
-                id: index, 
-                first_name: parts[1].replace(" (A)", "").trim(),
-                last_name: parts[0].trim(),
-                adjunct: p.name.indexOf("(A)") >= 0
+                ...p, 
+                ...name
             }
-            return person
+            peopleObj[name.id] = person
         }
     })
-}
-
-
-const offeringName = (activity) => {
-    let parts = activity.session.split(' ');
-    return activity.code + "-S" + parts[1]; 
+    return peopleObj
 }
 
 /**
- * Given an array of activities, generate an array of unit offerings
- * @param {Array} activities 
+ * Generate an offering id like COMP1000-S1 from the code and session fields
+ * 
+ * @param {Object} it - an offering or activity with properties 'code' and 'session' 
+ * @returns {String} an offering identifier
  */
-const gatherOfferings = (activities) => {
+const offeringName = (it) => {
+    let parts = it.session.split(' ');
+    return it.code + "-S" + parts[1]; 
+}
 
-    const offerings = [];
+
+/**
+ * Add an Id to each offering, combine co-taught offerings
+ * into one record with combined enrollment
+ * @param {Array} offerings 
+ */
+const expandOfferings = (offerings) => {
+    const offeringsMod = {}
     
-    activities.map((activity) => {
-
-        if (offerings.findIndex(el => {return el.id === offeringName(activity);}) < 0) {
-            if (activity.code) {
-                let offering = {
-                    id: offeringName(activity),
-                    unit_code: activity.code,
-                    title: activity.title,
-                    session: activity.session
-                }
-                offerings.push(offering);
+    offerings.forEach( (o) => {
+        const id = offeringName(o)
+        if (!o.cotaught) {
+            offeringsMod[id] = {
+                ...o,
+                id: id
             }
+        }        
+    })
+    // now get all cotaught offerings
+    offerings.forEach( (o) => {
+        if (o.cotaught) {
+            const id = offeringName({code: o.cotaught, session: o.session })
+            offeringsMod[id].enrollment += o.enrollment
+            offeringsMod[id].cotaughtWith = o.code
+            offeringsMod[id].cotaughtEnrollment = o.enrollment
+        }        
+    })
+
+    for (const [key, o] of Object.entries(offeringsMod)) {
+        o.load = workload.computeOfferingLoad(o)
+    }
+     
+    return offeringsMod
+}
+
+const expandActivities = (activities, offerings) => {
+    const activitiesMod = []
+    activities.forEach((activity) => {
+        const person = personName(activity.staff)
+        const offeringid = offeringName(activity)
+        const offering = offerings[offeringid]
+        if (!offering) {
+            if (activity.notes && ! activity.notes.startsWith("Coteach")) {
+                console.log("Unknown offering", activity)
+            }
+            return
+        }
+
+        activitiesMod.push({
+            ...activity,
+            staffid: person ? person.id : null,
+            offeringid: offeringid
+        })
+
+        if (activity.SGTA) {
+            activitiesMod.push({
+                code: activity.code,
+                title: activity.title,
+                session: activity.session,
+                activity: 'SGTA',
+                quantity: activity.SGTA,
+                staff: activity.staff,
+                staffid: person ? person.id : null,
+                offeringid: offeringid
+            })
+        }
+        if (activity.marking) {
+            activitiesMod.push({
+                code: activity.code,
+                title: activity.title,
+                session: activity.session,
+                activity: 'Marking',
+                quantity: activity.marking,
+                staff: activity.staff,
+                staffid: person ? person.id : null,
+                offeringid: offeringid
+            })
+        }
+        // add bonus points if this is a new unit or this person is new to it
+        if (activity.bonus || offering.newUnit) {
+            activitiesMod.push({
+                code: activity.code,
+                title: activity.title,
+                session: activity.session,
+                activity: 'Bonus',
+                quantity: (activity.bonus || 0) + workload.unitLoading(offering.newUnit) * activity.quantity,
+                staff: activity.staff,
+                staffid: person ? person.id : null,
+                offeringid: offeringid
+            })
         }
     })
-    return offerings
+    return computeWorkload(activitiesMod, offerings)
 }
+
+const computeWorkload = (activities, offerings) => {
+    return activities.map( a => {
+        return {
+            ...a,
+            load: workload.computeWorkload(a, offerings)
+        }
+    })
+}
+
 
 
 /**
@@ -83,32 +189,31 @@ const gatherOfferings = (activities) => {
  * @param {Array} people 
  * @param {Array} offerings 
  */
-const processActivities = (fileName) => {
+const readSpreadsheet = (fileName) => {
 
-    let {people, activities} = readAllocationWorkbook(fileName)
-
-    const offerings = gatherOfferings(activities)
+    let {activities, people, offerings} = readAllocationWorkbook(fileName)
 
     people = expandPeople(people)
-    activities =  activities.map((activity) => {
-        const person = people.find(e => e.name === activity.staff)
-        return {
-            ...activity,
-            staffid: person ? person.id : null,
-            offeringid: offeringName(activity)
-        }
-        
-    })
+    offerings = expandOfferings(offerings)
+    activities = expandActivities(activities, offerings)
+    
 
     return {activities, people, offerings}
 }
 
-const {activities, people, offerings} = processActivities('data/allocation-2020.xlsx')
+const {activities, people, offerings} = readSpreadsheet('data/allocation-2021.xlsx')
 
 console.log(people.length, 'people')
 console.log(activities.length, 'activities')
 console.log(offerings.length, 'offerings')
 
-console.log(activities[0])
+/*
+console.log(activities.filter(a => a.offeringid === 'COMP3130-S1'))
 
-console.log(activities.filter(a => a.offeringid === 'COMP1000-S1'))
+console.log(offerings['COMP2010-S1'])
+console.log(people['AnnabelleMcIver'])
+*/
+
+fs.writeFileSync('src/allocation-load.json', 
+                 JSON.stringify({activities, people, offerings}, null, 2))
+

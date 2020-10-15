@@ -13,7 +13,7 @@ const convening = (enrollment, pace) => {
 
     if (enrollment > 0) {
         result = 0.8 + 0.09 * ((enrollment-1) ** 0.7) 
-        result += min(0.02*enrollment, 2.0)   // consultation load
+        result += Math.min(0.02*enrollment, 2.0)   // consultation load
         result += 1.0                         // assessment and exam development (max 1.75)
     }
 
@@ -78,30 +78,19 @@ const unitLoading = (newUnit) => {
     }
 }
 
-
-const unitPrototype = {
-    enrollment: 99,
-    lectureType: 'PACE', // or 'default'
-    newUnit: true,
-    sgtaHours: 2,
-    lectureHours: 3
-}
-
 /**
  * Compute the overall load for a unit
  * @param {Object} unit 
  */
-const computeLoad = (unit) => {
+const computeOfferingLoad = (unit) => {
     const nTutorials = Math.ceil(unit.enrollment/30)
-
-    
     const conveningLoad = convening(unit.enrollment, unit.lectureType === 'PACE')
-    const loading = unit_loading(unit.newUnit === 1.0)
+    const loading = unitLoading(unit.newUnit === 1.0)
 
     // lectuer gets lecturing load + half convening load + loading unless no students
     let lecturer = 0.0
     if (unit.enrollment > 0) {
-        lecturer = lecturing(unit.lectureHours) + convening_load/2
+        lecturer = lecturing(unit.lectureHours) + conveningLoad/2
     }
 
     return {
@@ -109,16 +98,48 @@ const computeLoad = (unit) => {
         lecturer: lecturer,
         loading: loading,
         tutorialClasses: nTutorials,
-        tutorial: tutorial(unit.sgtaHours) * nTutorials,
+        tutorial: tutorial(unit.SGTAHours) * nTutorials,
         marking: marking(unit.enrollment, 1.0)  // 1 hr per student
     }
 
 }
 
+// ---  above are the functions from model.py ----
+
+// --- below is the logic from workload.py to compute workload
+
+
 /**
- * Given an ar
- * @param {Object} offeringActivities 
+ * Given an activity, compute the associated workload and add it as
+ * a property to the object, returning a copy
+ * @param {Object} activity 
  */
-const unitOfferingActivities = (offeringActivities) => {
-    
+const computeWorkload = (activity, offerings) => {
+    let workload = 0.0;
+    const offering = offerings[activity.offeringid]
+    switch (activity.activity) {
+        case "Convener":
+            workload = convening(offering.enrollment, offering.lectureType)
+            break
+        case "Lecturer":
+            workload = lecturing(offering.lectureHours) * activity.quantity
+            break
+        case "Marking":
+            workload = Math.min(activity.quantity * marking(offering.enrollment, 1.0), activity.quantity)
+            break
+        case "SGTA":
+            workload = tutorial(offering.SGTAHours)
+            break
+        case "Bonus":
+            workload = activity.quantity
+            break
+    }
+    return workload
 }
+
+export default {
+    convening, lecturing, marking, tutorial,
+    projectSupervision, unitLoading, 
+    computeOfferingLoad, computeWorkload
+}
+
