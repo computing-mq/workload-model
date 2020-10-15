@@ -7,5 +7,6 @@
     "parcel-plugin-inliner": "^1.0.14",
     "posthtml-inline-assets": "^3.1.0",
     "xlsx": "^0.16.6"
-  }
+  },
+  "type": "module"
 }
