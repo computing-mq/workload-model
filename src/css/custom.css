@@ -1,3 +1,7 @@
+body {
+    background-color: bisque;
+}
+
 nav ul {
     list-style: none;
     display: block;

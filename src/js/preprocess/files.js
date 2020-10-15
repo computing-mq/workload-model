@@ -156,7 +156,7 @@ const expandActivities = (activities, offerings) => {
             })
         }
         // add bonus points if this is a new unit or this person is new to it
-        if (activity.bonus || offering.newUnit) {
+        if (activity.activity === "Lecturer" && (activity.bonus || offering.newUnit)) {
             activitiesMod.push({
                 code: activity.code,
                 title: activity.title,

@@ -17,7 +17,7 @@ const convening = (enrollment, pace) => {
         result += 1.0                         // assessment and exam development (max 1.75)
     }
 
-    if (pace) {
+    if (pace === "PACE") {
         result += 5.0  // bonus for PACE convening
     }
 
@@ -119,10 +119,12 @@ const computeWorkload = (activity, offerings) => {
     const offering = offerings[activity.offeringid]
     switch (activity.activity) {
         case "Convener":
-            workload = convening(offering.enrollment, offering.lectureType)
+            workload = convening(offering.enrollment, offering.lectureType) / 2.0
             break
         case "Lecturer":
-            workload = lecturing(offering.lectureHours) * activity.quantity
+            workload = (lecturing(offering.lectureHours) 
+                        + convening(offering.enrollment, offering.lectureType)/2.0 
+                        ) * activity.quantity
             break
         case "Marking":
             workload = Math.min(activity.quantity * marking(offering.enrollment, 1.0), activity.quantity)

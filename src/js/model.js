@@ -74,7 +74,7 @@ const Model = {
         let activities = this.get_activities();
         let result = [];
         for(let i=0; i<activities.length; i++) {
-            if (record[i].unit_code === code) {
+            if (activities[i].code === code) {
                 result.push(record[i]);
             }
         }
