@@ -5,44 +5,54 @@ const Model = {
 
     // this will hold the data stored in the model
     data: {
-        activities: [],
-        people: {},
-        offerings: {}
+        years: []
     },
 
     load: function() {
-
         this.data = allocation_load;
         let event = new CustomEvent("modelUpdated");
         window.dispatchEvent(event);
     },
 
-    get_offerings: function() {
-        return Object.values(this.data.offerings)
+    _data_for: function(year) {
+        for(const data of this.data.years) {
+            if (data.year == year) {
+                return data
+            }
+        }
+        return {offerings: {}, people: {}, activities: []}
     },
 
-    get_offering: function(id) {
-        return this.data.offerings[id]
+    get_years: function() {
+        return this.data.years.map(y => y.year)
     },
 
-    get_people: function() {
-        return Object.values(this.data.people);
+    get_offerings: function(year) {
+        return Object.values(this._data_for(year).offerings)
+    },
+
+    get_offering: function(year, id) {
+        return this._data_for(year).offerings[id]
+    },
+
+    get_people: function(year) {
+        return Object.values(this._data_for(year).people);
     },
     
-    get_people_with_load: function() {
-        let people = this.get_people();
+    get_people_with_load: function(year) {
+        let people = this.get_people(year);
         for(let i=0; i<people.length; i++) {
-            people[i].load = this.get_person_load(people[i].id);
+            people[i].load = this.get_person_load(year, people[i].id);
         }
         return people;
     },
 
-    get_person: function(id) {
-        return this.data.people[id]
+    get_person: function(year, id) {
+        return this._data_for(year).people[id]
     },
 
-    get_activities: function() {
-        return this.data.activities;
+    get_activities: function(year) {
+        return this._data_for(year).activities;
     }, 
 
     filter_activities: function(activities, field, value) {
@@ -69,9 +79,9 @@ const Model = {
         return result;
     }, 
 
-    get_unit_activities: function(code) {
+    get_unit_activities: function(year, code) {
 
-        let activities = this.get_activities();
+        let activities = this.get_activities(year);
         let result = [];
         for(let i=0; i<activities.length; i++) {
             if (activities[i].code === code) {
@@ -81,9 +91,9 @@ const Model = {
         return result;
     },
 
-    get_person_activities: function(personid) {
+    get_person_activities: function(year, personid) {
 
-        let activities = this.get_activities();
+        let activities = this.get_activities(year);
         let result = [];
         for(let i=0; i<activities.length; i++) {
             if (activities[i].staffid === personid) {
@@ -93,9 +103,9 @@ const Model = {
         return result;
     },
 
-    get_person_load: function(personid) {
+    get_person_load: function(year, personid) {
 
-        const activities = this.get_person_activities(personid);
+        const activities = this.get_person_activities(year, personid);
         const load = {
             'Session 1': 0,
             'Session 2': 0,

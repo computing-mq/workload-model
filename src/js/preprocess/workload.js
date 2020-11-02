@@ -132,7 +132,7 @@ const computeWorkload = (activity, offerings) => {
         case "SGTA":
             workload = tutorial(offering.SGTAHours)
             break
-        case "Bonus":
+        default: // Anything else we just copy over the quantity as workload
             workload = activity.quantity
             break
     }

@@ -36,7 +36,8 @@ export class UserList extends HTMLElement {
     constructor() {
         // Always call super first in constructor
         super();
- 
+
+        this._year = ''
         this._people = [];
         this._sortedColumn = "name";
         //this._root = this.attachShadow({mode: 'open'});
@@ -68,6 +69,10 @@ export class UserList extends HTMLElement {
         this._render();
     }
 
+    set year(value) {
+        this._year = value
+    }
+
     _render() {
         if (this.$tableContainer) {           
             this._sort();
@@ -77,7 +82,7 @@ export class UserList extends HTMLElement {
                 
                     const adjunctclass = e.adjunct ? 'adjunct': '';
                     const row = `<tr>
-                    <td class=${adjunctclass}><a href="#!/staff/${e.id}">${e.first_name} ${e.last_name}</a></td>
+                    <td class=${adjunctclass}><a href="#!/${this._year}/staff/${e.id}">${e.first_name} ${e.last_name}</a></td>
                     <td>${e.load['Session 1'].toFixed(1)}</td>
                     <td>${e.load['Session 2'].toFixed(1)}</td>
                     <td>${e.load['Session 3'].toFixed(1)}</td>                    

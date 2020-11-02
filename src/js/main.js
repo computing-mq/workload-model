@@ -11,13 +11,13 @@ function redraw() {
         case "staff": 
             document.getElementById('homepage').className = 'hidden';
 
-            let people = Model.get_people_with_load();
-            views.listPeopleView("mainlist", people);
+            let people = Model.get_people_with_load(hash.year);
+            views.listPeopleView("mainlist", hash.year, people);
             if (hash.id) {
-                let person = Model.get_person(hash.id);
-                let activities = Model.filter_activities(Model.get_activities(), "staff", person.name);
+                let person = Model.get_person(hash.year, hash.id);
+                let activities = Model.filter_activities(Model.get_activities(hash.year), "staff", person.name);
                 let grouped = Model.group_activities(activities, "session");
-                views.listPersonactivitiesView("detail", person, grouped);
+                views.listPersonactivitiesView("detail", hash.year, person, grouped);
             } else {
                 views.blankView("detail");
             }
@@ -25,13 +25,13 @@ function redraw() {
         case "offerings": 
             document.getElementById('homepage').className = 'hidden';
 
-            let offerings = Model.get_offerings();
-            views.listOfferingsView("mainlist", offerings);
+            let offerings = Model.get_offerings(hash.year);
+            views.listOfferingsView("mainlist", hash.year, offerings);
             if (hash.id) {
-                let offering = Model.get_offering(hash.id);
-                let activities = Model.filter_activities(Model.get_activities(), "code", offering.code);
+                let offering = Model.get_offering(hash.year, hash.id);
+                let activities = Model.filter_activities(Model.get_activities(hash.year), "code", offering.code);
                 activities = Model.filter_activities(activities, "session", offering.session);
-                views.listOfferingactivitiesView("detail", offering, activities);
+                views.listOfferingactivitiesView("detail", hash.year, offering, activities);
             } else {
                 views.blankView("detail");
             }
@@ -41,6 +41,7 @@ function redraw() {
             views.blankView("detail");
             document.getElementById('homepage').className = 'show';
     }
+    views.mainMenuView('header', hash.year, Model.get_years())
 
     bindings();
     window.scrollTo(0,0);

@@ -191,21 +191,36 @@ const computeWorkload = (activities, offerings) => {
  */
 const readSpreadsheet = (fileName) => {
 
+    console.log(fileName)
     let {activities, people, offerings} = readAllocationWorkbook(fileName)
 
     people = expandPeople(people)
     offerings = expandOfferings(offerings)
     activities = expandActivities(activities, offerings)
     
-
     return {activities, people, offerings}
 }
 
-const {activities, people, offerings} = readSpreadsheet('data/allocation-2021.xlsx')
 
-console.log(people.length, 'people')
-console.log(activities.length, 'activities')
-console.log(offerings.length, 'offerings')
+const readConfig = (filename) => {
+    const config = JSON.parse(fs.readFileSync(filename))
+
+    console.log(config)
+    for (const year of config.years) {
+        console.log(year)
+        const {activities, people, offerings} = readSpreadsheet(year.spreadsheet)
+        year.activities = activities
+        year.people = people
+        year.offerings = offerings
+
+        console.log(Object.getOwnPropertyNames(people).length, 'people')
+        console.log(activities.length, 'activities')
+        console.log(Object.getOwnPropertyNames(offerings).length, 'offerings')
+    }
+
+    return config
+}
+
 
 /*
 console.log(activities.filter(a => a.offeringid === 'COMP3130-S1'))
@@ -215,5 +230,5 @@ console.log(people['AnnabelleMcIver'])
 */
 
 fs.writeFileSync('src/allocation-load.json', 
-                 JSON.stringify({activities, people, offerings}, null, 2))
+                 JSON.stringify(readConfig('./allocation-config.json'), null, 2))
 

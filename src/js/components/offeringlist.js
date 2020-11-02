@@ -32,6 +32,7 @@ export class OfferingTable extends HTMLElement {
         // Always call super first in constructor
         super();
  
+        this._year = ''
         this._offerings = []; 
         this._displayedOfferings = [];
         //this._root = this.attachShadow({mode: 'open'});
@@ -57,6 +58,10 @@ export class OfferingTable extends HTMLElement {
         this.filter(); 
     }
 
+    set year(value) {
+      this._year = value
+    }
+
     filter() {
         if (this.$filterBox) {
             const filterTerm = this.$filterBox.value.toLowerCase();
@@ -76,7 +81,7 @@ export class OfferingTable extends HTMLElement {
 
             this._displayedOfferings.forEach(e=>{
                 html = html + `<tr>
-                <td><a href="#!/offerings/${e.id}">${e.id}</a></td>
+                <td><a href="#!/${this._year}/offerings/${e.id}">${e.id}</a></td>
                 <td>${e.title}</td>
                 </tr>`
             });
