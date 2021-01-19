@@ -66,6 +66,13 @@ const expandPeople = (people) => {
     return peopleObj
 }
 
+
+const isAdjunct = (personid, people) => {
+
+    return people[personid].adjunct === "A"
+}
+
+
 /**
  * Generate an offering id like COMP1000-S1 from the code and session fields
  * 
@@ -108,9 +115,57 @@ const expandOfferings = (offerings) => {
     for (const [key, o] of Object.entries(offeringsMod)) {
         o.load = workload.computeOfferingLoad(o)
     }
-     
+
+
     return offeringsMod
 }
+
+/* compute the percentage of workload that has been allocated
+*/
+const computeOfferingAllocation = (offerings, activities, people) => {
+
+    for (const [key, o] of Object.entries(offerings)) {
+        
+        const allocated = {
+            convener: 0,
+            lecturer: 0,
+            adjunctConvener: 0,
+            adjunctLecturer: 0,
+            tutorialClasses: 0,
+            marking: 0
+        }
+        for(const act of activities) {
+
+            const adjunct = isAdjunct(act.staffid, people)
+
+            if (act.offeringid === o.id) {
+                switch (act.activity) {
+                    case "Convener":
+                        allocated.convener += act.quantity;
+                        if (adjunct) {
+                            allocated.adjunctConvener += act.quantity
+                        }
+                        break;
+                    case "Lecturer":
+                        allocated.lecturer += act.quantity;
+                        if (adjunct) {
+                            allocated.adjunctLecturer += act.quantity
+                        }
+                        break;
+                    case "SGTA":
+                        allocated.tutorialClasses += act.quantity;
+                        break;
+                    case "Marking":
+                        allocated.marking += 100*act.quantity/o.load.marking;
+                        break
+                }
+            }
+        }
+        o.allocated = allocated;
+    }
+}
+
+
 
 const expandActivities = (activities, offerings) => {
     const activitiesMod = []
@@ -122,6 +177,11 @@ const expandActivities = (activities, offerings) => {
             if (activity.notes && ! activity.notes.startsWith("Coteach")) {
                 console.log("Unknown offering", activity)
             }
+            return
+        }
+
+        // not allocated to anyone
+        if (activity.staff === undefined) {
             return
         }
 
@@ -180,7 +240,7 @@ const computeWorkload = (activities, offerings) => {
         }
     })
 }
-
+ 
 
 
 /**
@@ -197,18 +257,19 @@ const readSpreadsheet = (fileName) => {
     people = expandPeople(people)
     offerings = expandOfferings(offerings)
     activities = expandActivities(activities, offerings)
-    
+    computeOfferingAllocation(offerings, activities, people)
+
     return {activities, people, offerings}
 }
 
 
-const readConfig = (filename) => {
+const processConfig = (filename) => {
     const config = JSON.parse(fs.readFileSync(filename))
 
-    console.log(config)
     for (const year of config.years) {
         console.log(year)
-        const {activities, people, offerings} = readSpreadsheet(year.spreadsheet)
+        const fn = config.basedir + year.spreadsheet
+        const {activities, people, offerings} = readSpreadsheet(fn)
         year.activities = activities
         year.people = people
         year.offerings = offerings
@@ -230,5 +291,5 @@ console.log(people['AnnabelleMcIver'])
 */
 
 fs.writeFileSync('src/allocation-load.json', 
-                 JSON.stringify(readConfig('./allocation-config.json'), null, 2))
+                 JSON.stringify(processConfig('./allocation-config.json'), null, 2))
 

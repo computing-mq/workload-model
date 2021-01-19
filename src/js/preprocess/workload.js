@@ -130,7 +130,10 @@ const computeWorkload = (activity, offerings) => {
             workload = Math.min(activity.quantity * marking(offering.enrollment, 1.0), activity.quantity)
             break
         case "SGTA":
-            workload = tutorial(offering.SGTAHours)
+            workload = tutorial(offering.SGTAHours) * activity.quantity
+            break
+        case "Moderator":
+            workload = 0.3 * activity.quantity
             break
         default: // Anything else we just copy over the quantity as workload
             workload = activity.quantity

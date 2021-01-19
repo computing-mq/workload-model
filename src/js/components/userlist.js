@@ -79,7 +79,6 @@ export class UserList extends HTMLElement {
 
             let html = '';
             this._people.forEach(e=>{
-                
                     const adjunctclass = e.adjunct ? 'adjunct': '';
                     const row = `<tr>
                     <td class=${adjunctclass}><a href="#!/${this._year}/staff/${e.id}">${e.first_name} ${e.last_name}</a></td>

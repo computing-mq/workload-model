@@ -15,3 +15,8 @@ nav ul li {
 .hidden {
     display: none;
 }
+
+.container {
+    max-width: 1500px;
+    width: 90%;
+}
