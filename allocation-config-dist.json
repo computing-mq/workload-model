@@ -1,0 +1,12 @@
+{
+    "years": [
+            {
+                "year": 2020,
+                "spreadsheet": "data/allocation-2020.xlsx"
+            },
+            {
+                "year": 2021,
+                "spreadsheet": "data/allocation-2021.xlsx"
+            }
+        ]
+}

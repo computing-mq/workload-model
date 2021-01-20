@@ -1,0 +1,13 @@
+{
+    "basedir": "/Users/Steve/OneDrive - Macquarie University/Documents/Teaching Allocation/",
+    "years": [
+            {
+                "year": 2020,
+                "spreadsheet": "allocation-2020.xlsx"
+            },
+            {
+                "year": 2021,
+                "spreadsheet": "allocation-2021.xlsx"
+            }
+        ]
+}

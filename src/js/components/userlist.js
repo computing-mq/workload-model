@@ -17,7 +17,10 @@ userListTemplate.innerHTML = `<style>
   <thead>
     <tr>
      <th data-name=name>Name</th>
-     <th data-name=load>Load</th>
+     <th data-name=s1load>S1</th>
+     <th data-name=s2load>S2</th>
+     <th data-name=s3load>S3</th>
+     <th data-name=load>Overall</th>
     </tr>
   </thead>
   <tbody>
@@ -33,7 +36,8 @@ export class UserList extends HTMLElement {
     constructor() {
         // Always call super first in constructor
         super();
- 
+
+        this._year = ''
         this._people = [];
         this._sortedColumn = "name";
         //this._root = this.attachShadow({mode: 'open'});
@@ -65,17 +69,23 @@ export class UserList extends HTMLElement {
         this._render();
     }
 
+    set year(value) {
+        this._year = value
+    }
+
     _render() {
         if (this.$tableContainer) {           
             this._sort();
 
             let html = '';
             this._people.forEach(e=>{
-                
                     const adjunctclass = e.adjunct ? 'adjunct': '';
                     const row = `<tr>
-                    <td class=${adjunctclass}><a href="#!/staff/${e.id}">${e.first_name} ${e.last_name}</a></td>
-                    <td>${e.load.toFixed(1)}</td>
+                    <td class=${adjunctclass}><a href="#!/${this._year}/staff/${e.id}">${e.first_name} ${e.last_name}</a></td>
+                    <td>${e.load['Session 1'].toFixed(1)}</td>
+                    <td>${e.load['Session 2'].toFixed(1)}</td>
+                    <td>${e.load['Session 3'].toFixed(1)}</td>                    
+                    <td>${e.load.total.toFixed(1)}</td>
                     </tr>`;
                     html = html + row;
             
@@ -95,8 +105,14 @@ export class UserList extends HTMLElement {
     _sort() {
         if (this._sortedColumn === "name") {
             this._people.sort((a, b) => a.name > b.name);
+        } else if (this._sortedColumn === "s1load") {
+            this._people.sort((a, b) => b.load['Session 1'] - a.load['Session 1'])
+        } else if (this._sortedColumn === "s2load") {
+            this._people.sort((a, b) => b.load['Session 2'] - a.load['Session 2'])
+        } else if (this._sortedColumn === "s3load") {
+            this._people.sort((a, b) => b.load['Session 3'] - a.load['Session 3'])
         } else {
-            this._people.sort((a, b) => b.load - a.load);
+            this._people.sort((a, b) => b.load.total - a.load.total)
         }
     }
 

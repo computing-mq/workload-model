@@ -19,24 +19,15 @@
  
   <script src="https://unpkg.com/@webcomponents/custom-elements"></script>
 
-  <script src="js/userlist.js"></script>
-  <script src="js/offeringlist.js"></script>
-  <script src="js/table.js"></script>
+  <script src="js/components/userlist.js"></script>
+  <script src="js/components/offeringlist.js"></script>
+  <script src="js/components/table.js"></script>
   <script src="js/main.js"></script>
 </head>
 <body>
 
   <div class="container">
-    <h1>Computing Teaching Allocation</h1>
-
-    <nav>
-      <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#!/staff">Staff Summary</a></li>
-        <li><a href="#!/offerings">Unit Offering Summary</a></li>
-      </ul>
-    </nav>
-
+    <div id=header></div>
 
     <div id=homepage>
       <h2>About the Model</h2>
@@ -52,7 +43,6 @@
       a full time workload of 1575 hours per year.  Hence 1 point corresponds roughly
       to 15.75 hours of workload.  As stated in the FSE document: "The reason for this decision is to avoid the perception that the model is an accurate hour-by-hour measure of the time taken for any given task. Any workload model is inevitably inaccurate and can only give an approximate measure of the relative time taken for different tasks."</p>
 
-
       <h4>Convening</h4>
 
       <p>The Faculty model for convening covers activities that are shared by co-lecturers 
@@ -65,16 +55,23 @@
 
       <p>Convening loads are based on estimated or actual enrollments in the unit.</p>
 
+      <h4>Other Teaching Activities</h4>
 
-      <h4>Lecturing and Marking</h4>
-
-      <p>Lecturing load is calculated based on 13 weeks of lectures with the number of hours 
+      <p><strong>Lecturing</strong> load is calculated based on 13 weeks of lectures with the number of hours 
         per week varying for each unit (normally 3).
       </p>
 
-      <p>Marking load is assigned seperately. A cap on marking load per unit is calculated based on
+      <p><strong>Marking</strong> load is assigned seperately. A cap on marking load per unit is calculated based on
         1 hr per student enrolment to cover exam and assignment marking.
       </p>
+
+      <p>A <strong>Moderator</strong> is assigned to most units with a load of 0.3 workload points.
+      This role is intended to cover the moderation (review) of assessment in the unit, including
+      the final exam.</p>
+
+      <p>Workshops and tutorials are designated as <strong>SGTA</strong> (Small Group Teaching Activity)
+      in the model.  The number of hours per week varies per unit offering and is shown
+      when you click on a unit code to view the detail.</p>
 
       <h4>Administrative Roles</h4>
 

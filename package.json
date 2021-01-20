@@ -1,10 +1,20 @@
 {
+  "scripts": {
+    "preprocess": "nodemon --watch '/Users/Steve/OneDrive - Macquarie University/Documents/Teaching Allocation/' --ext xlsx,js --watch src/js/preprocess src/js/preprocess/files.js",
+    "serve": "parcel serve src/index.html",
+    "start": "concurrently \"npm:preprocess\" \"npm:serve\"",
+    "build": "node src/js/preprocess/files.js; parcel build src/index.html"
+  },
   "devDependencies": {
     "cssnano": "^4.1.10",
     "posthtml": "^0.13.0"
   },
   "dependencies": {
+    "concurrently": "^5.3.0",
+    "nodemon": "^2.0.5",
     "parcel-plugin-inliner": "^1.0.14",
-    "posthtml-inline-assets": "^3.1.0"
-  }
+    "posthtml-inline-assets": "^3.1.0",
+    "xlsx": "^0.16.6"
+  },
+  "type": "module"
 }
