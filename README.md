@@ -1,11 +1,11 @@
-Workload Model for Computing @ Macquarie
-==
+# Workload Model for Computing @ Macquarie
 
-This project implements the 2020 workload model for the Computing Department. 
+This project implements the workload model for the Computing Department. 
 
-Input is a set of spreadsheets describing unit offerings and allocations.
+Input is a set of spreadsheets describing unit offerings and allocations, one for each year.
+Each spreadsheet should have sheets:
 
-unit-enrollments.xlsx - single sheet with columns:
+Units sheet
 
 Unit Code - eg. COMP1000
 Title - unit title
@@ -15,55 +15,57 @@ New Unit - 1 if this is a new unit, blank otherwise, unit will attract a loading
 Co Taught - unit code of any co-taught unit (eg. COMP6100)
 Lecture Type - 'Mature', 'Refreshed', as per the workload model, or 'PACE' for PACE units
 
-allocation.xlsx - spreadsheet with at least two sheets named 'Activities' and 'Staff'
-
 Activities sheet
-Unit Code - matching those in unit-enrollments
+
+Unit Code - matching those in Units sheet
 Title
 Session - 'Session 1', 'Session 2' or 'Session 3'
 Activity - 'Lecturer', 'Convener'
 Quantity - fraction allocated 0-1 for lecturer/convener, workload points allocated for marking
 New - additional load for staff new to the unit or new to teaching, workload points
-Staff - staff name, eg. 'Cassidy, Steve'
+Staff - staff name, matching name in Staff sheet
 Notes - any notes on the allocation
 
+Staff sheet
 
-Model Implementation
----
+Name - eg. 'Cassidy, Steve'
+Adjunct - 'A' if the staff member is an adjunct, blank otherwise
+S1 - target load for S1
+S2 - target load for S2
 
-The workload model is implemented in [model.py](model.py). Procedures compute the 
-overall load for different activities in a unit offering. 
+## Running the Model
 
-* Convening load includes load for consultation and assessment + exam development
-* Lecturing load varies by lecture type, assumes 13*3hr lectures and models additional PACE loading of +5 points
-
-
-Workload Computation
----
-
-The [workload.py](workload.py) script reads the source spreadsheets and computes
-the workload for each activity in the allocation.  The script monitors the `data`
-directory for changes and re-builds the output data in JSON if the spreadsheet
-changes.  
-
-Front-end Visualisation
----
-
-The front end HTML visualisation is implemented in the `src` directory in HTML + JS.
-It can be compiled into a single stand-alone HTML file using the parcel bundler. 
-To monitor for changes in the allocation JSON data run:
+Requires that you have node.js installed.  Download/clone this repository. To install dependencies run:
 
 ```
-parcel serve src/index.html
+npm install
 ```
 
-To build the standalone HTML file run:
+The project requires a configuration file to tell it where the spreadsheets are.
+Copy `allocation-config-dist.json` to `allocation-config.json` and edit the 
+path names to point to your copies of the allocation spreadsheets. 
+
+To monitor the spreadsheets you also need to edit `package.json` to put the
+correct directory name in the `"preprocess"` line. 
+
+To build the web pages and serve them locally run:
 
 ```
-parcel build src/index.html
+npm start
 ```
 
-The output is written to `dist/index.html`.
+This will serve pages on http://localhost:1234/.  It will monitor for changes in 
+the spreadsheets and the project code and should regenerate and refresh the page
+when you save the spreadsheet file. 
 
+## Code Structure
 
+The project is in two parts.  `src/js/preprocess.js` reads the spreadsheets and
+generates a JSON version of the data with workload calculations added.   The 
+web interface is then generated via the Javascript incldued in `index.html` - this is 
+bundled and served by `parcel`.  `parcel serve` will run a local server and watch
+for changes.  `parcel build` will build a single file version with all data etc
+embedded and written to `dist/index.html`.   
 
+The script `publish.sh` runs the build process and uploads the result to my (Steve's)
+web space.  
