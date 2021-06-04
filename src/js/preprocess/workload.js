@@ -119,7 +119,7 @@ const computeWorkload = (activity, offerings) => {
     const offering = offerings[activity.offeringid]
     switch (activity.activity) {
         case "Convener":
-            workload = convening(offering.enrollment, offering.lectureType) / 2.0
+            workload = activity.quantity * convening(offering.enrollment, offering.lectureType) / 2.0
             break
         case "Lecturer":
             workload = (lecturing(offering.lectureHours) 
