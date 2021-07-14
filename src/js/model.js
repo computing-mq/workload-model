@@ -113,9 +113,10 @@ const Model = {
             total: 0
         }
         for(let i=0; i<activities.length; i++) {
-            load[activities[i].session] += activities[i].load
+            load[activities[i].session] += activities[i].load;
             load.total += activities[i].load;
         }
+
         return load;
     }
 };

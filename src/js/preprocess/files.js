@@ -106,7 +106,7 @@ const expandOfferings = (offerings) => {
     offerings.forEach( (o) => {
         if (o.cotaught) {
             const id = offeringName({code: o.cotaught, session: o.session })
-            offeringsMod[id].enrollment += o.enrollment
+            offeringsMod[id].enrollment += o.enrollment | 0;  // possible empty cell
             offeringsMod[id].cotaughtWith = o.code
             offeringsMod[id].cotaughtEnrollment = o.enrollment
         }        

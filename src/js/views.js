@@ -77,7 +77,6 @@ export function listOfferingsView(targetid, year, offerings) {
 export function listOfferingactivitiesView(targetid, year, offering, activities) {
     const target = document.getElementById(targetid);
     target.innerHTML = "";  // wipe children
-    console.log(offering);
 
     const table = document.createElement('data-table');
     table.title = `${offering.code} ${offering.session}`;
