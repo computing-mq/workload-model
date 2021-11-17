@@ -22,12 +22,13 @@ offeringListTemplate.innerHTML = `<style>
        <th data-name=title>Title</th>
        <th data-name=convener>C</th>
        <th data-name=lecturer>L</th>
-     <!--
+     
        <th data-name=convener>C(A)</th>
        <th data-name=lecturer>L(A)</th>
-       <th data-name=tutorialClasses>T</th>
+       <th data-name=tutorialClasses>T Alloc</th>
+       <th data-name=tutorialClassesReq>T Req</th>
        <th data-name=marking>M</th>
-       -->
+       
     </tr>
   </thead>
   <tbody>
@@ -107,21 +108,21 @@ export class OfferingTable extends HTMLElement {
         if (this.$tableContainer) {
             let html = '';
 
+            
             this._displayedOfferings.forEach(e=>{
                 html = html + `<tr>
                 <td><a href="#!/${this._year}/offerings/${e.id}">${e.id}</a></td>
                 <td>${e.title}</td>
                 <td>${e.allocated.convener}</td>
                 <td>${e.allocated.lecturer}</td>
+                <td>${e.allocated.adjunctConvener}</td>
+                <td>${e.allocated.adjunctLecturer}</td>
+                <td>${e.allocated.tutorialClasses}</td> <td>${e.load.tutorialClasses}</td>
+                <td>${e.allocated.marking.toFixed(1)}</td>
+                <td>${e.load.marking.toFixed(1)}</td>
                 </tr>`
             });
 
-            /* 
-                <td>${e.allocated.adjunctConvener}</td>
-                <td>${e.allocated.adjunctLecturer}</td>
-                <td>${e.allocated.tutorialClasses}/${e.load.tutorialClasses}</td>
-                <td>${e.allocated.marking.toFixed(1)}%</td>
-                */
 
             this.$tableContainer.innerHTML = html;
 

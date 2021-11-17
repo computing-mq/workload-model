@@ -8,6 +8,10 @@
             {
                 "year": 2021,
                 "spreadsheet": "allocation-2021.xlsx"
+            },
+            {
+                "year": 2022,
+                "spreadsheet": "allocation-2022.xlsx"
             }
         ]
 }

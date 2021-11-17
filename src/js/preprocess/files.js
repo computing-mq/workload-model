@@ -156,7 +156,9 @@ const computeOfferingAllocation = (offerings, activities, people) => {
                         allocated.tutorialClasses += act.quantity;
                         break;
                     case "Marking":
-                        allocated.marking += 100*act.quantity/o.load.marking;
+                        if (o.load.marking) {
+                            allocated.marking += act.quantity;
+                        }
                         break
                 }
             }
