@@ -90,7 +90,7 @@ const offeringName = (it) => {
  * into one record with combined enrollment
  * @param {Array} offerings 
  */
-const expandOfferings = (offerings) => {
+const expandOfferings = (offerings,  year) => {
     const offeringsMod = {}
     
     offerings.forEach( (o) => {
@@ -114,6 +114,7 @@ const expandOfferings = (offerings) => {
 
     for (const [key, o] of Object.entries(offeringsMod)) {
         o.load = workload.computeOfferingLoad(o)
+        o.year = year
     }
 
 
@@ -251,13 +252,13 @@ const computeWorkload = (activities, offerings) => {
  * @param {Array} people 
  * @param {Array} offerings 
  */
-const readSpreadsheet = (fileName) => {
+const readSpreadsheet = (fileName, year) => {
 
-    console.log(fileName)
+    console.log(fileName, year)
     let {activities, people, offerings} = readAllocationWorkbook(fileName)
 
     people = expandPeople(people)
-    offerings = expandOfferings(offerings)
+    offerings = expandOfferings(offerings, year)
     activities = expandActivities(activities, offerings)
     computeOfferingAllocation(offerings, activities, people)
 
@@ -271,7 +272,7 @@ const processConfig = (filename) => {
     for (const year of config.years) {
         console.log(year)
         const fn = config.basedir + year.spreadsheet
-        const {activities, people, offerings} = readSpreadsheet(fn)
+        const {activities, people, offerings} = readSpreadsheet(fn, year.year)
         year.activities = activities
         year.people = people
         year.offerings = offerings
@@ -292,6 +293,6 @@ console.log(offerings['COMP2010-S1'])
 console.log(people['AnnabelleMcIver'])
 */
 
-fs.writeFileSync('src/allocation-load.json', 
+fs.writeFileSync('dist/allocation-load.json', 
                  JSON.stringify(processConfig('./allocation-config.json'), null, 2))
 

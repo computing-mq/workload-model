@@ -1,5 +1,5 @@
 export {Model};
-import allocation_load from '../allocation-load.json';
+// import allocation_load from '../allocation-load.json';
 
 const Model = {    
 
@@ -9,18 +9,30 @@ const Model = {
     },
 
     load: function() {
-        this.data = allocation_load;
-        let event = new CustomEvent("modelUpdated");
-        window.dispatchEvent(event);
+        const allocationUrl = 'allocation-load.json'
+        fetch(allocationUrl)
+        .then((response) => {
+            if (response.ok) {
+                return response.json()
+            }
+        })
+        .then((data) => {
+            this.data = data;
+            let event = new CustomEvent("modelUpdated");
+            window.dispatchEvent(event);
+        })
     },
 
     _data_for: function(year) {
-        for(const data of this.data.years) {
-            if (data.year == year) {
-                return data
+        if ( this.data ) {
+            for(const data of this.data.years) {
+                if (data.year == year) {
+                    return data
+                }
             }
+        } else {
+            return {offerings: {}, people: {}, activities: []}
         }
-        return {offerings: {}, people: {}, activities: []}
     },
 
     get_years: function() {

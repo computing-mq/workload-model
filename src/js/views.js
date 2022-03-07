@@ -9,6 +9,8 @@ export function blankView(targetid) {
 //   and insert it at `targetid` in the document
 export function listPersonactivitiesView(targetid, year, person, grouped) {
 
+    console.log(grouped)
+
     const target = document.getElementById(targetid);
     target.innerHTML = "";  // wipe children
 
@@ -80,6 +82,7 @@ export function listOfferingactivitiesView(targetid, year, offering, activities)
 
     const table = document.createElement('data-table');
     table.title = `${offering.code} ${offering.session}`;
+    table.subtitle = offering.title
     table.headings = {
         staff: {title: 'Staff', format: v => `<a href=#!/${year}/staff/${v.staffid}>${v.staff}</a>`}, 
         activity: {title: 'Activity'},
@@ -87,18 +90,32 @@ export function listOfferingactivitiesView(targetid, year, offering, activities)
         load: {title: 'Load', format: v => v.load.toFixed(2)}
     }
     table.data = activities;
- 
+
     target.appendChild(table);
 
+    let theSession = ''
+    if (offering.session === 'Session 1') {
+        theSession = 'S1'
+    } else if (offering.session === 'Session 2') {
+        theSession = 'S2'
+    } else {
+        theSession = 'S3'
+    }
+    const timetableLink = `https://timetables.mq.edu.au/${offering.year}/Reports/Calendar.aspx?objects=${offering.code}/${theSession}/F2F-DAY&weeks=9-23&days=1-7&periods=6-32&template=macquarie_module_grid`
+    const handbookLink = `https://coursehandbook.mq.edu.au/${offering.year}/units/${offering.code}/?year=${offering.year}`
+    
     const loaddiv = document.createElement("div")
     loaddiv.innerHTML = `<p>Estimated Enrollment: <strong>${offering.enrollment}</strong></p>`;
     loaddiv.innerHTML += `<p>Lecture hours <strong>${offering.lectureHours}</strong>.  Workshop hours <strong>${offering.SGTAHours}</p>`;
     if (offering.newUnit) {
         loaddiv.innerHTML += '<p>This is a new unit and attracts a workload bonus for unit preparation.</p>';
     }
-    loaddiv.innerHTML += `<p>Required marking load: <strong>${offering.load.marking.toFixed(1)}</strong> (<strong>${(offering.load.marking * 15.75).toFixed(1)}</strong> hours), <strong>${offering.allocated.marking.toFixed(1)}%</strong> (<strong>${(15.75 * offering.load.marking * offering.allocated.marking/100 ).toFixed(1)}</strong> hours) allocated.</p>`;
+    loaddiv.innerHTML += `<p>Required marking load: <strong>${offering.load.marking.toFixed(1)}</strong> (<strong>${(offering.load.marking * 15.75).toFixed(1)}</strong> hours), <strong>${(100* offering.allocated.marking/offering.load.marking).toFixed(1)}%</strong> (<strong>${(15.75 * offering.allocated.marking).toFixed(1)}</strong> hours) allocated.</p>`;
     loaddiv.innerHTML += `<p>Required tutorials/labs: <strong>${offering.load.tutorialClasses}</strong>, allocated <strong>${offering.allocated.tutorialClasses}</strong>.</p>`;
     
+    loaddiv.innerHTML += `<p><a target=new href="${timetableLink}">Timetable</a>`
+    loaddiv.innerHTML += `<p><a target=new href="${handbookLink}">Handbook</a>`
+
     target.appendChild(loaddiv);
     
 }
@@ -118,6 +135,7 @@ export function mainMenuView(targetid, year, years) {
         <li><a href="#!/${year}/staff">Staff Summary</a></li>
         <li><a href="#!/${year}/offerings">Unit Offering Summary</a></li>
         </ul>
+        <button onclick='window.reloadData()'>Refresh</button>
         </nav>`
     } else {
         let yearlist = ''

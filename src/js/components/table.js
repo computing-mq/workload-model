@@ -3,6 +3,7 @@ const tableTemplate = document.createElement('template');
 tableTemplate.innerHTML = `<style></style>
 
 <h5></h5>
+<h6>Subhead</h6>
 <table class=u-full-width>
   <thead></thead>
   <tbody></tbody>
@@ -28,6 +29,7 @@ export class DataTable extends HTMLElement {
         this.$thead = this._root.querySelector("thead");
         this.$tbody = this._root.querySelector("tbody");
         this.$h = this._root.querySelector('h5');
+        this.$sh = this._root.querySelector('h6')
 
         this._render();
     }
@@ -53,6 +55,10 @@ export class DataTable extends HTMLElement {
         this._title = value;
     }
 
+    set subtitle(value) {
+        this._subtitle = value;
+    }
+
     _render() {
         if (this.$tbody) {
             let html = '';
@@ -60,6 +66,9 @@ export class DataTable extends HTMLElement {
 
             if (this._title) { 
                 this.$h.innerHTML = this._title; 
+            }
+            if (this._subtitle) { 
+                this.$sh.innerHTML = this._subtitle; 
             }
 
             const row = this.$thead.appendChild(document.createElement('tr'))

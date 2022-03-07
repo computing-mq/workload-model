@@ -57,6 +57,12 @@ window.addEventListener("modelUpdated", function() {
      redraw();
 })
 
+
+window.reloadData = () => {
+    console.log("reloading...")
+    Model.load()
+}
+
 window.onload = function() {
     Model.load(); 
 }
