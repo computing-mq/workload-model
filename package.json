@@ -1,7 +1,7 @@
 {
   "scripts": {
     "preprocess": "nodemon --watch '/Users/Steve/OneDrive - Macquarie University/Documents/Teaching Allocation/' --ext xlsx,js --watch src/js/preprocess src/js/preprocess/files.js",
-    "serve": "http-server -c-1 dist",
+    "serve": "http-server -p 8023 -c-1 dist",
     "servep": "parcel serve src/index.html",
     "start": "npm run build; concurrently \"npm:preprocess\" \"npm:serve\"",
     "build": "parcel build src/index.html",
@@ -12,7 +12,9 @@
     "http-server": "^14.0.0",
     "ini": ">=1.3.6",
     "nodemon": "^2.0.5",
-    "xlsx": "^0.16.6"
+    "parcel-plugin-inliner": "^1.0.14",
+    "posthtml-inline-assets": "^3.1.0",
+    "xlsx": "^0.17.0"
   },
   "type": "module",
   "devDependencies": {
