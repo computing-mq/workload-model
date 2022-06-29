@@ -137,6 +137,10 @@ const computeOfferingAllocation = (offerings, activities, people) => {
         }
         for(const act of activities) {
 
+            if (!people[act.staffid]) {
+                console.log("Unknown person allocated to task", act.staffid)
+                continue
+            }
             const adjunct = isAdjunct(act.staffid, people)
 
             if (act.offeringid === o.id) {
