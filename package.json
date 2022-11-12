@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "preprocess": "nodemon --watch '/Users/Steve/OneDrive - Macquarie University/Documents/Teaching Allocation/' --ext xlsx,js --watch src/js/preprocess src/js/preprocess/files.js",
+    "preprocess": "nodemon --watch '/Users/Steve/Macquarie University/O365-Group-Computing Teaching Committee - Teaching Allocation/' --ext xlsx,js --watch src/js src/js/preprocess/files.js",
     "serve": "http-server -p 8023 -c-1 dist",
     "servep": "parcel serve src/index.html",
     "start": "npm run build; concurrently \"npm:preprocess\" \"npm:serve\"",

@@ -86,7 +86,7 @@ export function listOfferingactivitiesView(targetid, year, offering, activities)
     table.headings = {
         staff: {title: 'Staff', format: v => `<a href=#!/${year}/staff/${v.staffid}>${v.staff}</a>`}, 
         activity: {title: 'Activity'},
-        quantity: {title: 'Quantity', format: v => v.quantity.toFixed(1)},
+        quantity: {title: 'Quantity', format: v => v.quantity.toFixed(2)},
         load: {title: 'Load', format: v => v.load.toFixed(2)}
     }
     table.data = activities;

@@ -1,5 +1,5 @@
 {
-    "basedir": "/Users/Steve/OneDrive - Macquarie University/Documents/Teaching Allocation/",
+    "basedir": "/Users/Steve/Macquarie University/O365-Group-Computing Teaching Committee - Teaching Allocation/",
     "years": [
             {
                 "year": 2020,
@@ -12,6 +12,10 @@
             {
                 "year": 2022,
                 "spreadsheet": "allocation-2022.xlsx"
+            },
+            {
+                "year": 2023,
+                "spreadsheet": "allocation-2023.xlsx"
             }
         ]
 }
