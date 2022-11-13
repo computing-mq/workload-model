@@ -65,7 +65,7 @@ generates a JSON version of the data with workload calculations added.   The
 web interface is then generated via the Javascript incldued in `index.html` - this is 
 bundled and served by `parcel`.  `parcel serve` will run a local server and watch
 for changes.  `parcel build` will build a single file version with all data etc
-embedded and written to `dist/index.html`.   
+embedded and written to `dist/index.html`.
 
 The script `publish.sh` runs the build process and uploads the result to my (Steve's)
 web space.  
