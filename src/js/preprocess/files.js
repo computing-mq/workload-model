@@ -23,13 +23,33 @@ const readAllocationWorkbook = (fileName) => {
     const people = XLSX.utils.sheet_to_json(workbook.Sheets['Staff'], pconfig)
 
     const uconfig = {
-        header: ['code', 'title', 'session', 'enrollment',
-                 'newUnit', 'cotaught', 'lectureType', 'lectureHours', 'SGTAHours'],
-        blankrows: false,
-        range: 1 // ignore first row
+        // header: ['code', 'title', 'discipline', 'session', 'enrollment',
+        //          'newUnit', 'cotaught', 'lectureType', 'lectureHours', 'markingHours', 'SGTAHours'],
+        // blankrows: false,
+        // range: 1 // ignore first row
     }
-    const offerings = XLSX.utils.sheet_to_json(workbook.Sheets['Units'], uconfig)
+    const unitsMap = {
+        'Unit Code': 'code',
+        'Title': 'title',
+        'Session': 'session',
+        'Enrollment': 'enrollment',
+        'Lecture Type': 'lectureType',
+        'Lecture Hours': 'lectureHours',
+        'SGTA Hours': 'SGTAHours',
+        'Marking Hours': 'markingHours',
+        'Discipline': 'discipline',
+    }
 
+    let offerings = XLSX.utils.sheet_to_json(workbook.Sheets['Units'], uconfig)
+
+    offerings = offerings.map((offering) => {
+        const newOffering = {};
+        for (const key of Object.keys(offering)) {
+            newOffering[unitsMap[key]] = offering[key];
+        }
+        return newOffering;
+    })
+ 
     return {activities, people, offerings}
 }
 
@@ -264,7 +284,7 @@ const readSpreadsheet = (fileName, year) => {
 
     console.log(fileName, year)
     let {activities, people, offerings} = readAllocationWorkbook(fileName)
-
+    
     people = expandPeople(people)
     offerings = expandOfferings(offerings, year)
     activities = expandActivities(activities, offerings)
