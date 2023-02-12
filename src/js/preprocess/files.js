@@ -33,6 +33,7 @@ const readAllocationWorkbook = (fileName) => {
         'Title': 'title',
         'Session': 'session',
         'Enrollment': 'enrollment',
+        'New Unit': 'newUnit',
         'Lecture Type': 'lectureType',
         'Lecture Hours': 'lectureHours',
         'SGTA Hours': 'SGTAHours',
