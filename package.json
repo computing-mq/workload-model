@@ -6,7 +6,7 @@
     "build": "node src/js/preprocess/files.js; parcel build src/index.html"
   },
   "devDependencies": {
-    "cssnano": "^5.1.14",
+    "cssnano": "^6.0.0",
     "posthtml": "^0.13.0"
   },
   "dependencies": {
